@@ -10,6 +10,8 @@ import com.miraisense.task_tracker_backend.repository.TaskRepository;
 import com.miraisense.task_tracker_backend.repository.UserRepository;
 import com.miraisense.task_tracker_backend.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,10 +43,9 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskResponseDTO> getAllTasksByUserId(Long userId) {
-        return taskRepository.findByUserId(userId).stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+    public Page<TaskResponseDTO> getAllTasksByUserId(Long userId, Pageable pageable) {
+        Page<Task> taskPage = taskRepository.findByUserId(userId, pageable);
+        return taskPage.map(this::mapToResponseDTO);
     }
 
     @Override
