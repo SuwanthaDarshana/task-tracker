@@ -1,20 +1,17 @@
--- Create Users Table for Simple Login
+-- Create Users Table
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(100) NOT NULL UNIQUE, -- Changed to email
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) DEFAULT 'ROLE_USER'
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
 );
 
--- Create Tasks Table [cite: 13, 14]
+-- Create Tasks Table
 CREATE TABLE IF NOT EXISTS tasks (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
-    description TEXT,
+    description VARCHAR(500),
     status ENUM('TODO', 'IN_PROGRESS', 'DONE') DEFAULT 'TODO',
     due_date DATETIME,
     user_id BIGINT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

@@ -1,5 +1,6 @@
 package com.miraisense.task_tracker_backend.dto;
 
+
 import lombok.*;
 
 @Getter
@@ -7,9 +8,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class StandardResponseDTO <T>{
-    private T data;
-    private String message;
-    private int statusCode;
-
+public class AuthResponseDTO {
+    private String token;
+    private String email;
+    private Long userId;
 }

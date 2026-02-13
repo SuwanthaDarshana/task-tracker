@@ -1,9 +1,10 @@
--- Insert Sample User (Password is 'password123' - you should bcrypt this in the app)
-INSERT INTO users (username, password, role)
-VALUES ('admin', '$2a$10$8.UnVuG9HHgffUDAlk8Kn.2NvS.C.Kz7eKCQJ/vB27k5D8nInxG/O', 'ROLE_USER');
+-- Insert Sample User (email: admin@example.com, password: password123)
+INSERT INTO users (email, password)
+VALUES ('admin@example.com', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.7uqqQ3a');
 
--- Insert Initial Tasks [cite: 34]
-INSERT INTO tasks (title, description, status, due_date, user_id) VALUES
-('Setup Project Architecture', 'Initialize Spring Boot and React projects.', 'DONE', '2026-02-15 10:00:00', 1),
-('Implement JWT Auth', 'Secure the backend with simple login.', 'IN_PROGRESS', '2026-02-16 17:00:00', 1),
-('Design Task Dashboard', 'Create the React UI with Tailwind CSS.', 'TODO', '2026-02-18 09:00:00', 1);
+-- Insert Sample Tasks for the above user
+INSERT INTO tasks (title, description, status, due_date, user_id)
+VALUES
+('Setup Backend', 'Complete Spring Boot API logic', 'DONE', NOW(), 1),
+('Design Frontend', 'Create React components with Tailwind', 'IN_PROGRESS', DATE_ADD(NOW(), INTERVAL 2 DAY), 1),
+('Submit Assignment', 'Push code to GitHub and record demo', 'TODO', DATE_ADD(NOW(), INTERVAL 5 DAY), 1);

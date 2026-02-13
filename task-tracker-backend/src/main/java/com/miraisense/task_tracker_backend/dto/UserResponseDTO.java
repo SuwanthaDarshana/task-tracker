@@ -7,9 +7,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class StandardResponseDTO <T>{
-    private T data;
-    private String message;
-    private int statusCode;
+public class UserResponseDTO {
+    private Long id;
+    private String email;
 
 }
