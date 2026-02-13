@@ -4,6 +4,7 @@ import { isAxiosError } from 'axios'
 import api from '../api/axiosConfig'
 import { useAuth } from '../context/AuthContext'
 import type { AuthResponse, StandardResponse } from '../types'
+import { toast } from 'react-toastify'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -27,12 +28,15 @@ const Login = () => {
       })
 
       login(response.data.data)
+      toast.success('Welcome back!')
       navigate('/dashboard')
     } catch (err) {
       if (isAxiosError(err) && err.response?.data?.message) {
         setError(err.response.data.message)
+        toast.error(err.response.data.message)
       } else {
         setError('Login failed. Check your credentials.')
+        toast.error('Login failed. Check your credentials.')
       }
     } finally {
       setLoading(false)
@@ -51,7 +55,7 @@ const Login = () => {
             </svg>
           </div>
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-600">
-            TaskFlow
+            TaskTraker
           </h1>
         </div>
 

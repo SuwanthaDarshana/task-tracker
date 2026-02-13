@@ -1,10 +1,11 @@
 import api from "./axiosConfig";
-import type { Task, StandardResponse, CreateTaskRequest } from "../types";
+import type { Task, StandardResponse, CreateTaskRequest, PageResponse } from "../types";
 
 export const taskService = {
-  getTasks: async (userId: number): Promise<Task[]> => {
-    const { data } = await api.get<StandardResponse<Task[]>>(
+  getTasks: async (userId: number, page: number = 0, size: number = 6): Promise<PageResponse<Task>> => {
+    const { data } = await api.get<StandardResponse<PageResponse<Task>>>(
       `/tasks/user/${userId}`,
+      { params: { page, size } },
     );
     return data.data;
   },

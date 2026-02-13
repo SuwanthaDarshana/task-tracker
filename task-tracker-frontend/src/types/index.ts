@@ -29,5 +29,17 @@ export type StandardResponse<T> = {
   statusCode: number;
 };
 
+// Spring Boot Page response shape
+export type PageResponse<T> = {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number; // current page (0-based)
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+};
+
 // For creating/updating tasks
 export type CreateTaskRequest = Omit<Task, 'id'>;

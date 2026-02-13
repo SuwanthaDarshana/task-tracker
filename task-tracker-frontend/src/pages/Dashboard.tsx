@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../api/taskService";
 import type { Task, TaskStatus } from "../types";
+import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import TaskForm from "../components/TaskForm";
 import TaskCard from "../components/TaskCard";
@@ -9,6 +10,9 @@ import FilterBar from "../components/FilterBar";
 import EmptyState from "../components/EmptyState";
 import EditTaskModal from "../components/EditTaskModal";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import Pagination from "../components/Pagination";
+
+const PAGE_SIZE = 6;
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -21,22 +25,31 @@ const Dashboard = () => {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchTasks = useCallback(async () => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
+  const fetchTasks = useCallback(async (page: number = currentPage) => {
     if (!user) return;
     try {
       setError("");
-      const data = await taskService.getTasks(user.id);
-      setTasks(data);
+      const pageData = await taskService.getTasks(user.id, page, PAGE_SIZE);
+      setTasks(pageData.content);
+      setTotalPages(pageData.totalPages);
+      setTotalElements(pageData.totalElements);
+      setCurrentPage(pageData.number);
     } catch {
       setError("Failed to load tasks. Please try again.");
+      toast.error("Failed to load tasks.");
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, currentPage]);
 
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    fetchTasks(currentPage);
+  }, [currentPage, fetchTasks]);
 
   // Create task
   const handleCreateTask = async (title: string, description: string, dueDate: string) => {
@@ -49,7 +62,12 @@ const Dashboard = () => {
         status: "TODO",
         dueDate,
       });
-      await fetchTasks();
+      // Jump to first page to see the newest task (sorted by dueDate desc)
+      setCurrentPage(0);
+      await fetchTasks(0);
+      toast.success("Task created successfully!");
+    } catch {
+      toast.error("Failed to create task.");
     } finally {
       setCreating(false);
     }
@@ -67,7 +85,9 @@ const Dashboard = () => {
 
     try {
       await taskService.updateTask(taskId, { ...task, status: newStatus });
+      toast.success("Status updated!");
     } catch {
+      toast.error("Failed to update status.");
       // Revert on error
       await fetchTasks();
     }
@@ -80,6 +100,7 @@ const Dashboard = () => {
   ) => {
     await taskService.updateTask(taskId, updates);
     await fetchTasks();
+    toast.success("Task updated successfully!");
   };
 
   // Open delete confirmation modal
@@ -99,11 +120,21 @@ const Dashboard = () => {
 
     try {
       await taskService.deleteTask(taskId);
+      // Re-fetch current page (may need to go back if last item on page)
+      await fetchTasks(currentPage);
+      toast.success("Task deleted successfully!");
     } catch {
-      await fetchTasks();
+      toast.error("Failed to delete task.");
+      await fetchTasks(currentPage);
     } finally {
       setDeleting(false);
     }
+  };
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Filtered tasks
@@ -132,7 +163,7 @@ const Dashboard = () => {
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm border border-red-100 flex items-center justify-between">
             <span>{error}</span>
-            <button onClick={fetchTasks} className="text-red-700 font-semibold hover:underline cursor-pointer">
+            <button onClick={() => fetchTasks(currentPage)} className="text-red-700 font-semibold hover:underline cursor-pointer">
               Retry
             </button>
           </div>
@@ -180,6 +211,17 @@ const Dashboard = () => {
             ))
           )}
         </div>
+
+        {/* Pagination */}
+        {!loading && filteredTasks.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={PAGE_SIZE}
+            onPageChange={handlePageChange}
+          />
+        )}
       </main>
 
       {/* Edit Modal */}

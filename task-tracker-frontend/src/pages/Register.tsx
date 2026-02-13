@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import api from '../api/axiosConfig'
 import type { UserResponseDTO, StandardResponse } from '../types'
+import { toast } from 'react-toastify'
 
 const Register = () => {
   const [email, setEmail] = useState('')
@@ -18,6 +19,7 @@ const Register = () => {
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.')
+      toast.error('Passwords do not match.')
       return
     }
 
@@ -29,14 +31,17 @@ const Register = () => {
         password,
       })
 
+      toast.success('Registration successful!')
       navigate('/login', {
         state: { message: 'Registration successful! Please sign in.' },
       })
     } catch (err) {
       if (isAxiosError(err) && err.response?.data?.message) {
         setError(err.response.data.message)
+        toast.error(err.response.data.message)
       } else {
         setError('Registration failed. Email might already be in use.')
+        toast.error('Registration failed. Email might already be in use.')
       }
     } finally {
       setLoading(false)
@@ -55,7 +60,7 @@ const Register = () => {
             </svg>
           </div>
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-600">
-            TaskFlow
+            TaskTraker
           </h1>
         </div>
 
