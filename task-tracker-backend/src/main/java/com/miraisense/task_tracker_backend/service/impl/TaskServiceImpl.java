@@ -16,18 +16,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
 
-
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
 
-
     @Override
-    @CacheEvict(value = "tasks", key = "#userId") // Clear cache when a task is created then next 'get' will be fresh
+    @CacheEvict(value = "tasks", allEntries = true) // Clear ALL task cache entries so paginated queries get fresh data
     public TaskResponseDTO createTask(TaskRequestDTO taskRequestDTO, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -40,7 +37,7 @@ public class TaskServiceImpl implements TaskService {
                 .user(user)
                 .build();
 
-        return mapToResponseDTO(taskRepository.save(task)) ;
+        return mapToResponseDTO(taskRepository.save(task));
     }
 
     @Override
@@ -81,7 +78,6 @@ public class TaskServiceImpl implements TaskService {
 
     }
 
-
     private TaskResponseDTO mapToResponseDTO(Task task) {
         return TaskResponseDTO.builder()
                 .id(task.getId())
@@ -91,6 +87,5 @@ public class TaskServiceImpl implements TaskService {
                 .dueDate(task.getDueDate())
                 .build();
     }
-
 
 }

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/tasks")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")   //Allow all origins
 public class TaskController {
 
     private final TaskService taskService;
@@ -41,7 +40,7 @@ public class TaskController {
     public ResponseEntity<StandardResponseDTO<Page<TaskResponseDTO>>> getAllTasksByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "6") int size) {
 
         // Modern way: Sort by dueDate descending so newest tasks appear first
         Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").descending());

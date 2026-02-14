@@ -17,7 +17,7 @@ This is a robust, full-stack ready backend implementation for a Task Tracker app
 
 ## 🛠️ Tech Stack
 
-* **Java**: 21
+* **Java**: 17
 * **Framework**: Spring Boot 3.4.4
 * **Database**: MySQL 8.0+
 * **Security**: Spring Security & JSON Web Token (JWT)
@@ -28,7 +28,7 @@ This is a robust, full-stack ready backend implementation for a Task Tracker app
 ## ⚙️ Prerequisites
 
 Before you begin, ensure you have the following installed:
-* **JDK 21**
+* **JDK 17**
 * **MySQL Server**
 * **Maven** (or use the provided `mvnw` wrapper)
 
@@ -53,7 +53,9 @@ src/main/java/com/miraisense/task_tracker_backend/
 ## 🛠️ Getting Started
 
 ### 1. Clone the repository
+```bash
 git clone https://github.com/SuwanthaDarshana/task-tracker
+```
 
 
 ### 2. Database Configuration
@@ -65,7 +67,7 @@ git clone https://github.com/SuwanthaDarshana/task-tracker
     * `JWT_EXPIRATION`: Token validity (e.g., `86400000` for 24 hours)
 
 ### 3. Database Scripts (Mandatory)
-Navigate to the `backend/dbscript/` folder to find the following scripts:
+Navigate to the `src/dbscript/` folder to find the following scripts:
 * `schema.sql`: Run this first to create the `users` and `tasks` tables.
 * `data.sql`: Run this to insert sample data, including a default user.
     * **Sample User Login**: `admin@example.com` / `password123`
@@ -73,10 +75,14 @@ Navigate to the `backend/dbscript/` folder to find the following scripts:
 ### 4. Running the App
 
 #### Navigate to backend directory
-*`cd task-tracker-backend`*
+```bash
+cd task-tracker-backend
+```
 
 #### Run the application
-*`mvn spring-boot:run`*
+```bash
+mvn spring-boot:run
+```
 
 
 ---

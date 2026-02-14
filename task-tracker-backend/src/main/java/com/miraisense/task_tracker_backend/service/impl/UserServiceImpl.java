@@ -5,7 +5,8 @@ import com.miraisense.task_tracker_backend.dto.LoginRequestDTO;
 import com.miraisense.task_tracker_backend.dto.UserRequestDTO;
 import com.miraisense.task_tracker_backend.dto.UserResponseDTO;
 import com.miraisense.task_tracker_backend.entity.User;
-import com.miraisense.task_tracker_backend.exception.ResourceNotFoundException;
+import com.miraisense.task_tracker_backend.exception.AuthenticationException;
+import com.miraisense.task_tracker_backend.exception.DuplicateResourceException;
 import com.miraisense.task_tracker_backend.repository.UserRepository;
 import com.miraisense.task_tracker_backend.security.JwtService;
 import com.miraisense.task_tracker_backend.service.UserService;
@@ -26,7 +27,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO register(UserRequestDTO request) {
         // Check if user already exists
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use");
+            throw new DuplicateResourceException("Email already in use");
         }
 
         // Create and encode password
@@ -47,11 +48,11 @@ public class UserServiceImpl implements UserService {
     public AuthResponseDTO login(LoginRequestDTO request) {
         // Find user by email
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
+                .orElseThrow(() -> new AuthenticationException("Invalid email or password"));
 
         // Verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new AuthenticationException("Invalid email or password");
         }
 
         // Generate JWT token
