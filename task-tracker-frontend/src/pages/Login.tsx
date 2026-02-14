@@ -56,7 +56,7 @@ const Login = () => {
             </svg>
           </div>
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-600">
-            TaskTraker
+            TaskTracker
           </h1>
         </div>
 

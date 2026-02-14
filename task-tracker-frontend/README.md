@@ -1,73 +1,101 @@
-# React + TypeScript + Vite
+# 📝 Mini Task Tracker - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, responsive single-page application built with **React 19**, **TypeScript**, and **Tailwind CSS v4** for managing personal tasks. Designed to work seamlessly with the Task Tracker Backend API.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Key Features
 
-## React Compiler
+* **User Authentication**: Secure login and registration with JWT token-based authentication.
+* **Task Management**: Full CRUD operations — create, view, edit, and delete tasks.
+* **Status Workflow**: Move tasks through `To Do → In Progress → Done` with one-click status transitions.
+* **Search & Filter**: Real-time search by title/description, filter by status, and sort by multiple criteria.
+* **Client-Side Pagination**: Smooth pagination with configurable page sizes.
+* **Responsive Design**: Fully responsive layout with Tailwind CSS utility-first styling.
+* **Toast Notifications**: User-friendly feedback for all actions using react-toastify.
+* **Optimistic Updates**: Instant UI updates with background server synchronization.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* **React**: 19.2
+* **TypeScript**: 5.9
+* **Build Tool**: Vite 7.3
+* **Styling**: Tailwind CSS 4
+* **HTTP Client**: Axios
+* **Routing**: React Router v7
+* **Notifications**: react-toastify
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## ⚙️ Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+* **Node.js**: 18+
+* **npm** (or yarn/pnpm)
+* **Backend API** running on `http://localhost:8090`
+
+---
+
+## 📂 Project Structure
+
+```text
+src/
+├── api/           # Axios config and API service functions
+├── components/    # Reusable UI components (TaskCard, Modals, etc.)
+├── context/       # React Context for authentication state
+├── pages/         # Route-level page components
+├── types/         # TypeScript type definitions
+├── App.tsx        # Root component with routing setup
+└── main.tsx       # Application entry point
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🛠️ Getting Started
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Navigate to frontend directory
+```bash
+cd task-tracker-frontend
 ```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Environment Configuration
+Create a `.env` file in the root of the frontend directory:
+```env
+VITE_API_URL=http://localhost:8090/api/v1
+```
+
+### 4. Start the development server
+```bash
+npm run dev
+```
+
+The application will be available at: **http://localhost:5173**
+
+---
+
+## 📦 Available Scripts
+
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Start development server with HMR |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint checks |
+
+---
+
+## 🔗 API Integration
+
+The frontend connects to the backend REST API at the URL specified by `VITE_API_URL`. Ensure the backend is running before starting the frontend.
+
+### Authentication Flow
+1. Register a new account or login with existing credentials
+2. JWT token is stored in localStorage
+3. All API requests automatically include the `Authorization: Bearer <token>` header
+4. Token is managed via React Context (`AuthProvider`)

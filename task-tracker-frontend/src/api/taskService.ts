@@ -10,6 +10,26 @@ export const taskService = {
     return data.data;
   },
 
+  // Fetch ALL tasks by iterating through every page
+  getAllTasks: async (userId: number): Promise<Task[]> => {
+    const allTasks: Task[] = [];
+    let page = 0;
+    let totalPages = 1;
+
+    while (page < totalPages) {
+      const { data } = await api.get<StandardResponse<PageResponse<Task>>>(
+        `/tasks/user/${userId}`,
+        { params: { page, size: 100 } },
+      );
+      const pageData = data.data;
+      allTasks.push(...pageData.content);
+      totalPages = pageData.totalPages;
+      page++;
+    }
+
+    return allTasks;
+  },
+
   createTask: async (
     userId: number,
     task: CreateTaskRequest,

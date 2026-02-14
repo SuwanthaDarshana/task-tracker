@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../api/taskService";
 import type { Task, TaskStatus, SortOption } from "../types";
@@ -17,7 +17,7 @@ const PAGE_SIZE = 6;
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [activeFilter, setActiveFilter] = useState<TaskStatus | "ALL">("ALL");
@@ -29,47 +29,120 @@ const Dashboard = () => {
   const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
   const [error, setError] = useState("");
 
-  // Pagination state
+  // Client-side pagination state
   const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
 
-  const fetchTasks = useCallback(async (page: number = currentPage) => {
+  // Fetch ALL tasks by iterating through every backend page
+  const fetchTasks = useCallback(async () => {
     if (!user) return;
     try {
       setError("");
-      const pageData = await taskService.getTasks(user.id, page, PAGE_SIZE);
-      setTasks(pageData.content);
-      setTotalPages(pageData.totalPages);
-      setTotalElements(pageData.totalElements);
-      setCurrentPage(pageData.number);
+      const tasks = await taskService.getAllTasks(user.id);
+      setAllTasks(tasks);
     } catch {
       setError("Failed to load tasks. Please try again.");
       toast.error("Failed to load tasks.");
     } finally {
       setLoading(false);
     }
-  }, [user, currentPage]);
+  }, [user]);
 
   useEffect(() => {
-    fetchTasks(currentPage);
-  }, [currentPage, fetchTasks]);
+    fetchTasks();
+  }, [fetchTasks]);
+
+  // ── Pipeline: allTasks → search → filter → sort ──
+
+  // 1) Search across ALL tasks
+  const searchedTasks = useMemo(() => {
+    if (!searchQuery.trim()) return allTasks;
+    const q = searchQuery.toLowerCase();
+    return allTasks.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        (t.description && t.description.toLowerCase().includes(q))
+    );
+  }, [allTasks, searchQuery]);
+
+  // 2) Filter by status
+  const filteredTasks = useMemo(
+    () =>
+      activeFilter === "ALL"
+        ? searchedTasks
+        : searchedTasks.filter((t) => t.status === activeFilter),
+    [searchedTasks, activeFilter]
+  );
+
+  // 3) Sort
+  const sortedTasks = useMemo(() => {
+    const order: Record<TaskStatus, number> = { TODO: 0, IN_PROGRESS: 1, DONE: 2 };
+    return [...filteredTasks].sort((a, b) => {
+      switch (sortOption) {
+        case "dueDate_desc":
+          return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+        case "dueDate_asc":
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        case "title_asc":
+          return a.title.localeCompare(b.title);
+        case "title_desc":
+          return b.title.localeCompare(a.title);
+        case "status_asc":
+          return order[a.status] - order[b.status];
+        case "status_desc":
+          return order[b.status] - order[a.status];
+        default:
+          return 0;
+      }
+    });
+  }, [filteredTasks, sortOption]);
+
+  // 4) Client-side pagination
+  const totalElements = sortedTasks.length;
+  const totalPages = Math.ceil(totalElements / PAGE_SIZE);
+  const paginatedTasks = useMemo(
+    () => sortedTasks.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE),
+    [sortedTasks, currentPage]
+  );
+
+  // Reset to page 0 when search, filter, or sort changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchQuery, activeFilter, sortOption]);
+
+  // Task counts for filter badges (based on searched tasks — before status filter)
+  const taskCounts = useMemo(
+    () => ({
+      ALL: searchedTasks.length,
+      TODO: searchedTasks.filter((t) => t.status === "TODO").length,
+      IN_PROGRESS: searchedTasks.filter((t) => t.status === "IN_PROGRESS").length,
+      DONE: searchedTasks.filter((t) => t.status === "DONE").length,
+    }),
+    [searchedTasks]
+  );
+
+  // ── Handlers ──
 
   // Create task
   const handleCreateTask = async (title: string, description: string, dueDate: string) => {
     if (!user) return;
     setCreating(true);
     try {
-      await taskService.createTask(user.id, {
+      const newTask = await taskService.createTask(user.id, {
         title,
         description,
         status: "TODO",
         dueDate,
       });
-      // Jump to first page to see the newest task (sorted by dueDate desc)
+      // Immediately add the new task to the list so it shows right away
+      setAllTasks((prev) => {
+        return [newTask, ...prev];
+      });
+      setActiveFilter("ALL");
+      setSearchQuery("");
       setCurrentPage(0);
-      await fetchTasks(0);
       toast.success("Task created successfully!");
+      // Re-sync with server to ensure list matches DB
+      await fetchTasks();
     } catch {
       toast.error("Failed to create task.");
     } finally {
@@ -79,11 +152,11 @@ const Dashboard = () => {
 
   // Update status (from TaskCard arrows)
   const handleUpdateStatus = async (taskId: number, newStatus: TaskStatus) => {
-    const task = tasks.find((t) => t.id === taskId);
+    const task = allTasks.find((t) => t.id === taskId);
     if (!task) return;
 
     // Optimistic update
-    setTasks((prev) =>
+    setAllTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
     );
 
@@ -92,7 +165,6 @@ const Dashboard = () => {
       toast.success("Status updated!");
     } catch {
       toast.error("Failed to update status.");
-      // Revert on error
       await fetchTasks();
     }
   };
@@ -102,14 +174,23 @@ const Dashboard = () => {
     taskId: number,
     updates: { title: string; description: string; status: TaskStatus; dueDate: string }
   ) => {
-    await taskService.updateTask(taskId, updates);
-    await fetchTasks();
-    toast.success("Task updated successfully!");
+    // Optimistic update
+    setAllTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
+    );
+    try {
+      await taskService.updateTask(taskId, updates);
+      toast.success("Task updated successfully!");
+      fetchTasks();
+    } catch {
+      toast.error("Failed to update task.");
+      fetchTasks();
+    }
   };
 
   // Open delete confirmation modal
   const handleDeleteTask = (taskId: number) => {
-    const task = tasks.find((t) => t.id === taskId);
+    const task = allTasks.find((t) => t.id === taskId);
     if (task) setDeletingTask(task);
   };
 
@@ -119,17 +200,17 @@ const Dashboard = () => {
     setDeleting(true);
 
     const taskId = deletingTask.id;
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    // Optimistic removal
+    setAllTasks((prev) => prev.filter((t) => t.id !== taskId));
     setDeletingTask(null);
 
     try {
       await taskService.deleteTask(taskId);
-      // Re-fetch current page (may need to go back if last item on page)
-      await fetchTasks(currentPage);
       toast.success("Task deleted successfully!");
+      fetchTasks();
     } catch {
       toast.error("Failed to delete task.");
-      await fetchTasks(currentPage);
+      fetchTasks();
     } finally {
       setDeleting(false);
     }
@@ -139,53 +220,6 @@ const Dashboard = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // 1) Search
-  const searchedTasks = searchQuery.trim()
-    ? tasks.filter((t) => {
-        const q = searchQuery.toLowerCase();
-        return (
-          t.title.toLowerCase().includes(q) ||
-          (t.description && t.description.toLowerCase().includes(q))
-        );
-      })
-    : tasks;
-
-  // 2) Filter by status
-  const filteredTasks =
-    activeFilter === "ALL"
-      ? searchedTasks
-      : searchedTasks.filter((t) => t.status === activeFilter);
-
-  // 3) Sort
-  const statusOrder: Record<TaskStatus, number> = { TODO: 0, IN_PROGRESS: 1, DONE: 2 };
-
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    switch (sortOption) {
-      case "dueDate_desc":
-        return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
-      case "dueDate_asc":
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      case "title_asc":
-        return a.title.localeCompare(b.title);
-      case "title_desc":
-        return b.title.localeCompare(a.title);
-      case "status_asc":
-        return statusOrder[a.status] - statusOrder[b.status];
-      case "status_desc":
-        return statusOrder[b.status] - statusOrder[a.status];
-      default:
-        return 0;
-    }
-  });
-
-  // Task counts for filter badges (based on searched tasks so counts stay accurate)
-  const taskCounts = {
-    ALL: searchedTasks.length,
-    TODO: searchedTasks.filter((t) => t.status === "TODO").length,
-    IN_PROGRESS: searchedTasks.filter((t) => t.status === "IN_PROGRESS").length,
-    DONE: searchedTasks.filter((t) => t.status === "DONE").length,
   };
 
   return (
@@ -200,14 +234,14 @@ const Dashboard = () => {
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm border border-red-100 flex items-center justify-between">
             <span>{error}</span>
-            <button onClick={() => fetchTasks(currentPage)} className="text-red-700 font-semibold hover:underline cursor-pointer">
+            <button onClick={() => fetchTasks()} className="text-red-700 font-semibold hover:underline cursor-pointer">
               Retry
             </button>
           </div>
         )}
 
         {/* Search, Filter & Sort Bar */}
-        {!loading && tasks.length > 0 && (
+        {!loading && allTasks.length > 0 && (
           <FilterBar
             activeFilter={activeFilter}
             onFilterChange={setActiveFilter}
@@ -231,7 +265,7 @@ const Dashboard = () => {
                 Loading your tasks...
               </div>
             </div>
-          ) : sortedTasks.length === 0 ? (
+          ) : paginatedTasks.length === 0 ? (
             <EmptyState
               title={
                 searchQuery
@@ -249,7 +283,7 @@ const Dashboard = () => {
               }
             />
           ) : (
-            sortedTasks.map((task) => (
+            paginatedTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -263,7 +297,7 @@ const Dashboard = () => {
         </div>
 
         {/* Pagination */}
-        {!loading && sortedTasks.length > 0 && (
+        {!loading && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
