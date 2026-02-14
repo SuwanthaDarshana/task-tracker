@@ -35,4 +35,11 @@ export const taskService = {
   deleteTask: async (taskId: number): Promise<void> => {
     await api.delete(`/tasks/${taskId}`);
   },
+
+  getTaskById: async (taskId: number): Promise<Task> => {
+    const { data } = await api.get<StandardResponse<Task>>(
+      `/tasks/${taskId}`,
+    );
+    return data.data;
+  },
 };

@@ -6,9 +6,10 @@ interface TaskCardProps {
   onUpdateStatus: (taskId: number, newStatus: TaskStatus) => void;
   onDelete: (taskId: number) => void;
   onEdit: (task: Task) => void;
+  onView: (taskId: number) => void;
 }
 
-const TaskCard = ({ task, onUpdateStatus, onDelete, onEdit }: TaskCardProps) => {
+const TaskCard = ({ task, onUpdateStatus, onDelete, onEdit, onView }: TaskCardProps) => {
   const nextStatus: Record<TaskStatus, TaskStatus | null> = {
     TODO: 'IN_PROGRESS',
     IN_PROGRESS: 'DONE',
@@ -37,7 +38,9 @@ const TaskCard = ({ task, onUpdateStatus, onDelete, onEdit }: TaskCardProps) => 
   };
 
   return (
-    <div className={`group bg-white p-6 rounded-2xl shadow-sm border transition-all duration-300 ${
+    <div
+      onClick={() => onView(task.id)}
+      className={`group bg-white p-6 rounded-2xl shadow-sm border transition-all duration-300 cursor-pointer ${
       task.status === 'DONE'
         ? 'border-emerald-200 bg-emerald-50/30'
         : isOverdue()
@@ -47,7 +50,7 @@ const TaskCard = ({ task, onUpdateStatus, onDelete, onEdit }: TaskCardProps) => 
       {/* Header: Status + Actions */}
       <div className="flex justify-between items-start mb-4">
         <StatusBadge status={task.status} />
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
           {/* Move backward */}
           {prevStatus[task.status] && (
             <button

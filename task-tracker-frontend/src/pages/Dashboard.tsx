@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../api/taskService";
-import type { Task, TaskStatus } from "../types";
+import type { Task, TaskStatus, SortOption } from "../types";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import TaskForm from "../components/TaskForm";
@@ -10,6 +10,7 @@ import FilterBar from "../components/FilterBar";
 import EmptyState from "../components/EmptyState";
 import EditTaskModal from "../components/EditTaskModal";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import TaskDetailModal from "../components/TaskDetailModal";
 import Pagination from "../components/Pagination";
 
 const PAGE_SIZE = 6;
@@ -20,9 +21,12 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [activeFilter, setActiveFilter] = useState<TaskStatus | "ALL">("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<SortOption>("dueDate_desc");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   // Pagination state
@@ -137,18 +141,51 @@ const Dashboard = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Filtered tasks
+  // 1) Search
+  const searchedTasks = searchQuery.trim()
+    ? tasks.filter((t) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          t.title.toLowerCase().includes(q) ||
+          (t.description && t.description.toLowerCase().includes(q))
+        );
+      })
+    : tasks;
+
+  // 2) Filter by status
   const filteredTasks =
     activeFilter === "ALL"
-      ? tasks
-      : tasks.filter((t) => t.status === activeFilter);
+      ? searchedTasks
+      : searchedTasks.filter((t) => t.status === activeFilter);
 
-  // Task counts for filter badges
+  // 3) Sort
+  const statusOrder: Record<TaskStatus, number> = { TODO: 0, IN_PROGRESS: 1, DONE: 2 };
+
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    switch (sortOption) {
+      case "dueDate_desc":
+        return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+      case "dueDate_asc":
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      case "title_asc":
+        return a.title.localeCompare(b.title);
+      case "title_desc":
+        return b.title.localeCompare(a.title);
+      case "status_asc":
+        return statusOrder[a.status] - statusOrder[b.status];
+      case "status_desc":
+        return statusOrder[b.status] - statusOrder[a.status];
+      default:
+        return 0;
+    }
+  });
+
+  // Task counts for filter badges (based on searched tasks so counts stay accurate)
   const taskCounts = {
-    ALL: tasks.length,
-    TODO: tasks.filter((t) => t.status === "TODO").length,
-    IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS").length,
-    DONE: tasks.filter((t) => t.status === "DONE").length,
+    ALL: searchedTasks.length,
+    TODO: searchedTasks.filter((t) => t.status === "TODO").length,
+    IN_PROGRESS: searchedTasks.filter((t) => t.status === "IN_PROGRESS").length,
+    DONE: searchedTasks.filter((t) => t.status === "DONE").length,
   };
 
   return (
@@ -169,12 +206,16 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Filter Bar */}
+        {/* Search, Filter & Sort Bar */}
         {!loading && tasks.length > 0 && (
           <FilterBar
             activeFilter={activeFilter}
             onFilterChange={setActiveFilter}
             taskCounts={taskCounts}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            sortOption={sortOption}
+            onSortChange={setSortOption}
           />
         )}
 
@@ -190,30 +231,39 @@ const Dashboard = () => {
                 Loading your tasks...
               </div>
             </div>
-          ) : filteredTasks.length === 0 ? (
+          ) : sortedTasks.length === 0 ? (
             <EmptyState
-              title={activeFilter === "ALL" ? "No tasks yet" : `No ${activeFilter.replace("_", " ").toLowerCase()} tasks`}
+              title={
+                searchQuery
+                  ? "No matching tasks"
+                  : activeFilter === "ALL"
+                    ? "No tasks yet"
+                    : `No ${activeFilter.replace("_", " ").toLowerCase()} tasks`
+              }
               message={
-                activeFilter === "ALL"
-                  ? "Create your first task above to get started!"
-                  : "Tasks with this status will appear here."
+                searchQuery
+                  ? "Try a different search term or clear your search."
+                  : activeFilter === "ALL"
+                    ? "Create your first task above to get started!"
+                    : "Tasks with this status will appear here."
               }
             />
           ) : (
-            filteredTasks.map((task) => (
+            sortedTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
                 onUpdateStatus={handleUpdateStatus}
                 onDelete={handleDeleteTask}
                 onEdit={setEditingTask}
+                onView={setViewingTaskId}
               />
             ))
           )}
         </div>
 
         {/* Pagination */}
-        {!loading && filteredTasks.length > 0 && (
+        {!loading && sortedTasks.length > 0 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -230,6 +280,15 @@ const Dashboard = () => {
         isOpen={!!editingTask}
         onClose={() => setEditingTask(null)}
         onSave={handleEditTask}
+      />
+
+      {/* Task Detail Modal */}
+      <TaskDetailModal
+        taskId={viewingTaskId}
+        isOpen={viewingTaskId !== null}
+        onClose={() => setViewingTaskId(null)}
+        onEdit={(task) => { setViewingTaskId(null); setEditingTask(task); }}
+        onDelete={(taskId) => { setViewingTaskId(null); handleDeleteTask(taskId); }}
       />
 
       {/* Delete Confirmation Modal */}

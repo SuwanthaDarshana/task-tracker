@@ -43,3 +43,12 @@ export type PageResponse<T> = {
 
 // For creating/updating tasks
 export type CreateTaskRequest = Omit<Task, 'id'>;
+
+// Sort options for task list
+export type SortOption =
+  | 'dueDate_desc'
+  | 'dueDate_asc'
+  | 'title_asc'
+  | 'title_desc'
+  | 'status_asc'
+  | 'status_desc';
