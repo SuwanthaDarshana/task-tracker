@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -55,14 +54,15 @@ public class UserServiceImpl implements UserService {
             throw new AuthenticationException("Invalid email or password");
         }
 
-        // Generate JWT token
-        String jwtToken = jwtService.generateToken(user.getEmail());
+        // Generate short-lived access token (JWT)
+        String accessToken = jwtService.generateToken(user.getEmail());
 
-        // Return auth data (Providing the userId for the frontend to manage tasks)
+        // Return auth data (access token only — refresh token is set as HttpOnly cookie
+        // by controller)
         return AuthResponseDTO.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
-                .token(jwtToken) // JWT token
+                .token(accessToken)
                 .build();
     }
 }

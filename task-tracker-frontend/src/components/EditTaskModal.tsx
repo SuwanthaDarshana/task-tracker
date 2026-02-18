@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Task, TaskStatus } from '../types';
 import { TASK_STATUSES } from '../types';
 
@@ -28,11 +28,21 @@ const EditTaskModal = ({ task, isOpen, onClose, onSave }: EditTaskModalProps) =>
       setTitle(task.title);
       setDescription(task.description || '');
       setStatus(task.status);
-      // Convert ISO date to YYYY-MM-DD for date input
       setDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
       setError('');
     }
   }, [task]);
+
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isOpen, handleEscape]);
 
   if (!isOpen || !task) return null;
 
@@ -48,7 +58,7 @@ const EditTaskModal = ({ task, isOpen, onClose, onSave }: EditTaskModalProps) =>
     setSaving(true);
     try {
       const dueDateISO = dueDate
-        ? new Date(dueDate).toISOString()
+        ? `${dueDate}T00:00:00`
         : new Date().toISOString();
 
       await onSave(task.id, {

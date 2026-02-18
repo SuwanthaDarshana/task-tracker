@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { Task } from '../types';
 import { taskService } from '../api/taskService';
 import StatusBadge from './StatusBadge';
@@ -37,6 +37,17 @@ const TaskDetailModal = ({ taskId, isOpen, onClose, onEdit, onDelete }: TaskDeta
 
     fetchTask();
   }, [taskId, isOpen]);
+
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isOpen, handleEscape]);
 
   if (!isOpen) return null;
 

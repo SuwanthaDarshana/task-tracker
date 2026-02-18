@@ -1,3 +1,5 @@
+import { useEffect, useCallback } from 'react';
+
 interface ConfirmDeleteModalProps {
   isOpen: boolean;
   taskTitle: string;
@@ -7,6 +9,17 @@ interface ConfirmDeleteModalProps {
 }
 
 const ConfirmDeleteModal = ({ isOpen, taskTitle, onConfirm, onCancel, loading }: ConfirmDeleteModalProps) => {
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onCancel();
+  }, [onCancel]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isOpen, handleEscape]);
+
   if (!isOpen) return null;
 
   return (

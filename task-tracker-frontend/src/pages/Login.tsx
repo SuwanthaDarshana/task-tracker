@@ -9,7 +9,6 @@ import { toast } from 'react-toastify'
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const { login } = useAuth()
@@ -19,7 +18,6 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
@@ -33,10 +31,8 @@ const Login = () => {
       navigate('/dashboard')
     } catch (err) {
       if (isAxiosError(err) && err.response?.data?.message) {
-        setError(err.response.data.message)
         toast.error(err.response.data.message)
       } else {
-        setError('Login failed. Check your credentials.')
         toast.error('Login failed. Check your credentials.')
       }
     } finally {
@@ -71,12 +67,6 @@ const Login = () => {
           {successMessage && (
             <div className="bg-emerald-50 text-emerald-700 p-3 rounded-xl mb-4 text-sm border border-emerald-100">
               {successMessage}
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm border border-red-100">
-              {error}
             </div>
           )}
 

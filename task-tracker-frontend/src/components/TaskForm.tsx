@@ -21,9 +21,9 @@ const TaskForm = ({ onSubmit, loading }: TaskFormProps) => {
     }
 
     try {
-      // Convert date to ISO string if provided, otherwise use current date
+      // Use date string directly to avoid timezone shift
       const dueDateISO = dueDate
-        ? new Date(dueDate).toISOString()
+        ? `${dueDate}T00:00:00`
         : new Date().toISOString();
 
       await onSubmit(title.trim(), description.trim(), dueDateISO);

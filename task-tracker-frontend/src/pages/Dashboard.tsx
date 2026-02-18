@@ -141,8 +141,6 @@ const Dashboard = () => {
       setSearchQuery("");
       setCurrentPage(0);
       toast.success("Task created successfully!");
-      // Re-sync with server to ensure list matches DB
-      await fetchTasks();
     } catch {
       toast.error("Failed to create task.");
     } finally {
@@ -181,7 +179,6 @@ const Dashboard = () => {
     try {
       await taskService.updateTask(taskId, updates);
       toast.success("Task updated successfully!");
-      fetchTasks();
     } catch {
       toast.error("Failed to update task.");
       fetchTasks();
@@ -207,7 +204,6 @@ const Dashboard = () => {
     try {
       await taskService.deleteTask(taskId);
       toast.success("Task deleted successfully!");
-      fetchTasks();
     } catch {
       toast.error("Failed to delete task.");
       fetchTasks();

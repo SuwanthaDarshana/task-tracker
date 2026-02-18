@@ -7,5 +7,6 @@ import com.miraisense.task_tracker_backend.dto.UserResponseDTO;
 
 public interface UserService {
     UserResponseDTO register(UserRequestDTO request);
+
     AuthResponseDTO login(LoginRequestDTO request);
 }

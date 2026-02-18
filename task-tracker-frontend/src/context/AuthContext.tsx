@@ -7,6 +7,7 @@ export interface AuthContextType {
   login: (authData: AuthResponse) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean; // true while silent refresh is in progress
 }
 
 // 1. Create the Context here
