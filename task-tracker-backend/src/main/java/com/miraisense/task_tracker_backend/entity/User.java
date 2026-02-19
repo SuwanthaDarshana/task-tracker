@@ -33,6 +33,7 @@ public class User implements UserDetails {
     private List<Task> tasks;
 
     // UserDetails Implementation Methods
+    // can use entity directly with spring security
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -78,6 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     silentRefresh();
   }, []);
 
+  
   // ─── Listen for token refresh events from axios interceptor ───
   useEffect(() => {
     const handleRefreshed = (e: Event) => {
@@ -98,12 +99,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem('user');
     };
 
-    window.addEventListener('auth:refreshed', handleRefreshed);
-    window.addEventListener('auth:session-expired', handleSessionExpired);
+    window.addEventListener('auth:refreshed', handleRefreshed);  // Listen for successful token refreshes
+    window.addEventListener('auth:session-expired', handleSessionExpired); // Listen for session expiration (e.g. refresh token revoked)
 
     return () => {
-      window.removeEventListener('auth:refreshed', handleRefreshed);
-      window.removeEventListener('auth:session-expired', handleSessionExpired);
+      window.removeEventListener('auth:refreshed', handleRefreshed); // Cleanup on unmount
+      window.removeEventListener('auth:session-expired', handleSessionExpired); 
     };
   }, []);
 

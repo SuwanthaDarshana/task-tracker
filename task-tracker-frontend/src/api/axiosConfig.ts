@@ -1,9 +1,9 @@
 import axios from 'axios'
 import type { InternalAxiosRequestConfig, AxiosError } from 'axios'
 
-// ─── In-memory access token store ───
-// Access token is stored in memory (NOT localStorage) for security.
-// It is lost on page refresh — the silent refresh mechanism restores it.
+// in-memory access token store
+// access token is stored in memory (NOT localStorage) for security.
+// it is lost on page refresh — the silent refresh mechanism restores it.
 let accessToken: string | null = null;
 
 export const setAccessToken = (token: string | null) => {
