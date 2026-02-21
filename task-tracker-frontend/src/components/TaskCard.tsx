@@ -48,6 +48,7 @@ const TaskCard = ({ task, onUpdateStatus, onDelete, onEdit, onView }: TaskCardPr
           : 'border-slate-200 hover:border-blue-300'
     }`}>
       {/* Header: Status + Actions */}
+      {/* <div><span className="text-xs text-slate-400 font-medium">ID: #{task.status === "TODO" ? task.id : "N/A"}</span></div> */}
       <div className="flex justify-between items-start mb-4">
         <StatusBadge status={task.status} />
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
