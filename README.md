@@ -4,6 +4,18 @@ A full-stack Task Tracker application featuring a **Spring Boot 3** REST API bac
 
 ---
 
+## 🌐 Live Demo
+
+| | URL |
+|---|---|
+| **Frontend** | [https://task-tracker-green-three.vercel.app](https://task-tracker-green-three.vercel.app) |
+| **Backend API** | [https://task-tracker-backend-production-bbd0.up.railway.app](https://task-tracker-backend-production-bbd0.up.railway.app) |
+| **Swagger UI** | [https://task-tracker-backend-production-bbd0.up.railway.app/swagger-ui.html](https://task-tracker-backend-production-bbd0.up.railway.app/swagger-ui.html) |
+
+> Hosted on **Vercel** (frontend) + **Railway** (backend) + **Aiven MySQL** (database) — 100% free tier.
+
+---
+
 ## 🚀 Key Features
 
 ### Backend
