@@ -3,15 +3,15 @@ FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
 
 # Copy Maven wrapper and pom.xml first (cached layer for dependencies)
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
+COPY task-tracker-backend/.mvn/ .mvn/
+COPY task-tracker-backend/mvnw task-tracker-backend/pom.xml ./
 RUN chmod +x mvnw
 
 # Download dependencies (cached unless pom.xml changes)
 RUN ./mvnw dependency:go-offline -B
 
 # Copy source code and build
-COPY src/ src/
+COPY task-tracker-backend/src/ src/
 RUN ./mvnw clean package -DskipTests -B
 
 # ── Stage 2: Run ──
