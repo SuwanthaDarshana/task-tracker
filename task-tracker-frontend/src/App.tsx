@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register'; 
 import Dashboard from './pages/Dashboard';
+import LandingPage from './pages/LandingPage';
 import { AuthProvider } from './context/AuthProvider';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,7 +24,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
 };
 
 function App() {
@@ -57,7 +58,7 @@ function App() {
           />
 
           {/* Default Redirection */}
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/" element={<LandingPage />} />
         </Routes>
       </Router>
     </AuthProvider>

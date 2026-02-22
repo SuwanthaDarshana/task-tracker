@@ -1,7 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <nav className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex justify-between items-center">
@@ -22,7 +24,7 @@ const Navbar = () => {
           <p className="text-xs text-slate-500">Logged in</p>
         </div>
         <button
-          onClick={logout}
+          onClick={async () => { await logout(); navigate('/'); }}
           className="px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-all shadow-sm cursor-pointer"
         >
           Sign Out
